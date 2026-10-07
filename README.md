@@ -1,34 +1,66 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# issue-tracker
 
-## Getting Started
+An issue tracker built with Next.js. Create issues, assign them to people, filter
+and sort them, and see a summary on the dashboard.
 
-First, run the development server:
+[Live demo](https://issue-tracker-one-snowy.vercel.app)
+
+## What it does
+
+- Create, edit and delete issues, with a markdown editor for the description
+- Every issue is OPEN, IN_PROGRESS or CLOSED
+- Assign an issue to a signed-in user
+- Filter the list by status, sort by column, page through results
+- Dashboard with issue counts per status and a bar chart
+- Sign in with Google
+
+## Stack
+
+| Area | Choice |
+| --- | --- |
+| Framework | Next.js, App Router |
+| Language | TypeScript |
+| Database | MySQL through Prisma |
+| Auth | NextAuth, Google provider |
+| UI | Radix UI Themes, Tailwind |
+| Data fetching | React Query |
+| Validation | Zod |
+| Charts | Recharts |
+
+## Data model
+
+`Issue` holds the title, description, status and timestamps, plus an optional
+relation to the `User` it is assigned to. NextAuth owns the `User`, `Account` and
+`Session` tables.
+
+## Running it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+npm install
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill in the values:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `DATABASE_URL`, pointing at a MySQL database
+- `NEXTAUTH_URL`, which is `http://localhost:3000` in development
+- `NEXTAUTH_SECRET`, any random string
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, from a Google OAuth client
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Then set up the database and start the server:
 
-## Learn More
+```bash
+npx prisma migrate dev
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+The app runs at http://localhost:3000.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+`/issues/new` and `/issues/edit/:id` need a signed-in user. That is handled in
+`middleware.ts` rather than being repeated in each page.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Prisma runs with `relationMode = "prisma"`, so foreign keys are enforced by the
+client rather than the database. That suits hosted MySQL providers that do not
+support foreign key constraints.
